@@ -1,6 +1,8 @@
 import express, { Application } from 'express';
 import cors from 'cors';
+
 import userRoutes from '../routes/usuario.routes';
+import db from '../db/connection';
 
 class Server {
 
@@ -19,12 +21,17 @@ class Server {
         this.routes();
     }
 
-    // TODO: conectar BD
+    async dbConnection() {
+        try {
+            await db.authenticate();
+            console.log('Database online');
+        } catch (error) {
+            throw new Error((error instanceof Error) ? error.message : String(error))
+        }
+    }
 
-    // funciones que se ejecutan antes de las rutas
     middlewares() {
-        // CORS
-        // habilitamos las peticiones cross-domain por defecto.
+        // CORS - habilitamos las peticiones cross-domain por defecto.
         this.app.use(cors());
 
         // Lectura body
@@ -42,7 +49,12 @@ class Server {
     listen() {
         this.app.listen(this.port, () => {
             console.log('Servidor corriendo en puerto ' + this.port)
+            this.init();
         })
+    }
+
+    async init(){
+        await this.dbConnection();
     }
 
 }
